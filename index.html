@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quotient — Quote & Invoice</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F8F5F0;
+    --parchment: #EDE8DF;
+    --ink: #1A1612;
+    --ink-soft: #3D3630;
+    --ink-muted: #7A7068;
+    --accent: #C8440A;
+    --accent-pale: #F5E6DF;
+    --rule: #D4CEC6;
+    --white: #FEFCF9;
+    --success: #2D6A4F;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--ink);
+    color: var(--cream);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .logo-word {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: var(--white);
+  }
+
+  .logo-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-top: 2px;
+  }
+
+  .nav { padding: 16px 0; flex: 1; }
+
+  .nav-section {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    padding: 12px 24px 6px;
+    margin-top: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.5);
+    font-size: 13.5px;
+    font-weight: 300;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    user-select: none;
+  }
+
+  .nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.04); }
+
+  .nav-item.active {
+    color: var(--cream);
+    border-left-color: var(--accent);
+    background: rgba(200,68,10,0.12);
+  }
+
+  .nav-icon { width: 16px; text-align: center; font-size: 13px; opacity: 0.7; }
+
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ─── MAIN ─── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--ink);
+  }
+
+  .topbar-actions { display: flex; gap: 10px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--rule);
+    background: var(--white);
+    color: var(--ink-soft);
+    transition: all 0.15s;
+  }
+
+  .btn:hover { background: var(--parchment); border-color: var(--ink-muted); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover { background: #A83608; border-color: #A83608; }
+
+  .btn-ghost { border-color: transparent; background: transparent; }
+  .btn-ghost:hover { background: var(--parchment); border-color: var(--rule); }
+
+  /* ─── CONTENT ─── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+  }
+
+  /* ─── PANELS ─── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--parchment);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+
+  .card-body { padding: 24px; }
+
+  /* ─── FORM ─── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid.col-full { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field.span-2 { grid-column: span 2; }
+  .field.span-3 { grid-column: span 3; }
+
+  label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+
+  input, textarea, select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    background: var(--white);
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* ─── LINE ITEMS ─── */
+  .items-table { width: 100%; border-collapse: collapse; }
+
+  .items-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 400;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .items-table th.right { text-align: right; }
+  .items-table td { padding: 6px 10px; vertical-align: middle; }
+
+  .items-table td input {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .item-delete {
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .item-delete:hover { color: var(--accent); background: var(--accent-pale); }
+
+  .items-add {
+    padding: 12px 10px 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ─── TOTALS ─── */
+  .totals-wrap {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--parchment);
+  }
+
+  .totals {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .total-row.grand {
+    border-top: 1px solid var(--rule);
+    margin-top: 4px;
+    padding-top: 10px;
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .total-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .total-value { font-family: 'DM Mono', monospace; font-size: 13px; }
+  .grand .total-value { font-size: 17px; }
+
+  /* ─── DOCUMENT LIST ─── */
+  .doc-list { display: flex; flex-direction: column; gap: 1px; }
+
+  .doc-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--parchment);
+    cursor: pointer;
+    transition: background 0.12s;
+    gap: 16px;
+  }
+
+  .doc-item:last-child { border-bottom: none; }
+  .doc-item:hover { background: var(--cream); }
+
+  .doc-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    min-width: 52px;
+    text-align: center;
+  }
+
+  .doc-badge.quote { background: #E8F0FE; color: #3B5BDB; }
+  .doc-badge.invoice { background: var(--accent-pale); color: var(--accent); }
+  .doc-badge.paid { background: #D8F3DC; color: var(--success); }
+  .doc-badge.draft { background: #F0EDE8; color: var(--ink-muted); border: 1px dashed var(--rule); }
+  .doc-badge.partial { background: #FFF3CD; color: #856404; }
+  .doc-badge.accepted { background: #D8F3DC; color: var(--success); }
+  .doc-badge.declined { background: #FFE5E5; color: #C0392B; }
+  .doc-badge.pending { background: #E8F0FE; color: #3B5BDB; }
+  .doc-badge.unpaid { background: var(--accent-pale); color: var(--accent); }
+
+  .doc-delete-btn {
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    transition: all 0.15s;
+    line-height: 1;
+    opacity: 0;
+  }
+  .doc-item:hover .doc-delete-btn { opacity: 1; }
+  .doc-delete-btn:hover { color: #C0392B; background: #FFE5E5; opacity: 1; }
+
+  /* ─── CONFIRM MODAL ─── */
+  .confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,22,18,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 32px 36px;
+    width: 360px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+  .confirm-icon { font-size: 28px; margin-bottom: 12px; }
+  .confirm-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .confirm-sub { font-size: 13px; color: var(--ink-muted); margin-bottom: 24px; line-height: 1.6; }
+  .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+  /* Draft watermark on A4 */
+  .a4-draft-stamp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-family: 'DM Mono', monospace;
+    font-size: 80px;
+    letter-spacing: 8px;
+    color: rgba(180,170,160,0.12);
+    text-transform: uppercase;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .doc-info { flex: 1; }
+  .doc-ref { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-muted); }
+  .doc-customer { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .doc-date { font-size: 12px; color: var(--ink-muted); }
+
+  .doc-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    text-align: right;
+  }
+
+  .doc-actions { display: flex; gap: 4px; }
+
+  /* ─── STATS ─── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 20px 24px;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .stat-sub { font-size: 11px; color: var(--ink-muted); margin-top: 4px; }
+
+  /* ─── TABS ─── */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); margin-bottom: 24px; }
+
+  .tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ink-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+    font-weight: 400;
+  }
+
+  .tab:hover { color: var(--ink); }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ─── PRINT PREVIEW MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,22,18,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: 8px;
+    width: 900px;
+    max-width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+
+  .modal-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .modal-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .modal-body { flex: 1; overflow-y: auto; padding: 32px; background: #E8E3DC; }
+
+  /* ─── A4 DOCUMENT ─── */
+  .a4 {
+    width: 794px;
+    min-height: 1123px;
+    background: white;
+    margin: 0 auto;
+    padding: 60px 64px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #1A1612;
+    position: relative;
+  }
+
+  .a4-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
+
+  .a4-brand-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: #1A1612;
+    line-height: 1;
+  }
+
+  .a4-brand-detail { font-size: 11px; color: #7A7068; margin-top: 6px; line-height: 1.7; }
+
+  .a4-doc-type {
+    text-align: right;
+  }
+
+  .a4-doc-word {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: #C8440A;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .a4-doc-ref {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: #7A7068;
+    margin-top: 6px;
+  }
+
+  .a4-rule { width: 100%; height: 1px; background: #D4CEC6; margin: 28px 0; }
+
+  .a4-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 36px; }
+
+  .a4-meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7A7068;
+    margin-bottom: 4px;
+  }
+
+  .a4-meta-value { font-size: 12px; color: #1A1612; font-weight: 500; }
+  .a4-meta-sub { font-size: 11px; color: #3D3630; line-height: 1.6; }
+
+  .a4-bill-to { margin-bottom: 32px; }
+
+  .a4-items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+
+  .a4-items th {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #7A7068;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #D4CEC6;
+    background: #F8F5F0;
+  }
+
+  .a4-items th.right { text-align: right; }
+
+  .a4-items td {
+    padding: 10px 12px;
+    font-size: 12px;
+    border-bottom: 1px solid #EDE8DF;
+    vertical-align: top;
+  }
+
+  .a4-items td.right { text-align: right; }
+  .a4-items td.muted { color: #7A7068; font-size: 11px; }
+
+  .a4-totals {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 32px;
+  }
+
+  .a4-totals-inner { width: 240px; }
+
+  .a4-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 12px;
+    color: #3D3630;
+  }
+
+  .a4-total-row.grand {
+    border-top: 1px solid #1A1612;
+    margin-top: 6px;
+    padding-top: 8px;
+    font-size: 15px;
+    color: #1A1612;
+    font-weight: 600;
+  }
+
+  .a4-total-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; align-self: center; }
+
+  .a4-total-value { font-family: 'DM Mono', monospace; }
+  .grand .a4-total-value { font-size: 16px; }
+
+  .a4-footer {
+    position: absolute;
+    bottom: 48px;
+    left: 64px;
+    right: 64px;
+    border-top: 1px solid #D4CEC6;
+    padding-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .a4-footer-note { font-size: 10px; color: #7A7068; max-width: 380px; line-height: 1.6; }
+
+  .a4-footer-brand { font-family: 'DM Mono', monospace; font-size: 9px; color: #7A7068; text-align: right; }
+
+  .a4-accent-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: #C8440A;
+    border-radius: 6px 6px 0 0;
+  }
+
+  .a4-status-stamp {
+    position: absolute;
+    top: 80px;
+    right: 64px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #2D6A4F;
+    border: 2px solid #2D6A4F;
+    padding: 4px 12px;
+    border-radius: 3px;
+    transform: rotate(-12deg);
+    opacity: 0.7;
+    display: none;
+  }
+
+  /* ─── SETTINGS GRID ─── */
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--ink);
+    color: var(--cream);
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty {
+    text-align: center;
+    padding: 64px 32px;
+    color: var(--ink-muted);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-text { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ink-muted); margin-bottom: 8px; }
+  .empty-sub { font-size: 13px; }
+
+  @media print {
+    .modal-overlay { display: flex !important; position: static; background: none; padding: 0; }
+    .modal { box-shadow: none; max-height: none; border-radius: 0; width: 100%; }
+    .modal-topbar { display: none; }
+    .modal-body { background: white; padding: 0; }
+    .a4 { box-shadow: none; margin: 0; }
+    body { background: white; }
+    .app, .sidebar, .main, .topbar { display: none; }
+    .modal-overlay { display: block; background: none; }
+  }
+
+  .divider { height: 1px; background: var(--parchment); margin: 20px 0; }
+  .text-muted { color: var(--ink-muted); font-size: 12px; }
+
+  select option { color: var(--ink); }
+
+  /* ─── GUIDE ─── */
+  .guide-hero {
+    background: var(--ink);
+    border-radius: 6px;
+    padding: 40px 48px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .guide-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 40px solid rgba(200,68,10,0.15);
+  }
+  .guide-hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .guide-hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+  .guide-hero-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    max-width: 480px;
+    line-height: 1.7;
+  }
+  .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .guide-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .guide-step-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 24px;
+    position: relative;
+  }
+  .guide-step-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    color: var(--parchment);
+    line-height: 1;
+    position: absolute;
+    top: 16px; right: 20px;
+  }
+  .guide-step-icon { font-size: 20px; margin-bottom: 12px; display: block; }
+  .guide-step-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .guide-step-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .guide-step-body { font-size: 13px; color: var(--ink-soft); line-height: 1.65; }
+  .guide-tip {
+    background: var(--accent-pale);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    padding: 12px 16px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .guide-tip strong {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .guide-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 12px;
+    margin-top: 4px;
+  }
+  .guide-faq-item {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .guide-faq-q {
+    padding: 14px 20px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: background 0.12s;
+  }
+  .guide-faq-q:hover { background: var(--cream); }
+  .guide-faq-q::after { content: '＋'; font-family: 'DM Mono', monospace; font-size: 14px; color: var(--ink-muted); flex-shrink: 0; }
+  .guide-faq-item.open .guide-faq-q::after { content: '－'; }
+  .guide-faq-a {
+    display: none;
+    padding: 14px 20px 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    border-top: 1px solid var(--parchment);
+  }
+  .guide-faq-item.open .guide-faq-a { display: block; }
+  .guide-shortcut-table { width: 100%; border-collapse: collapse; }
+  .guide-shortcut-table td { padding: 8px 16px; border-bottom: 1px solid var(--parchment); font-size: 13px; color: var(--ink-soft); }
+  .guide-shortcut-table td:first-child { width: 50%; }
+  .guide-shortcut-table tr:last-child td { border-bottom: none; }
+  kbd {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--parchment);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 2px 6px;
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-word">Quotient</div>
+      <div class="logo-tag">Quote & Invoice</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')">
+        <span class="nav-icon">◈</span> Dashboard
+      </div>
+      <div class="nav-section">Documents</div>
+      <div class="nav-item" onclick="showPanel('quotes')">
+        <span class="nav-icon">◻</span> Quotes
+      </div>
+      <div class="nav-item" onclick="showPanel('invoices')">
+        <span class="nav-icon">◼</span> Invoices
+      </div>
+      <div class="nav-section">Data</div>
+      <div class="nav-item" onclick="showPanel('customers')">
+        <span class="nav-icon">◯</span> Customers
+      </div>
+      <div class="nav-section">System</div>
+      <div class="nav-item" onclick="showPanel('settings')">
+        <span class="nav-icon">⊞</span> Settings
+      </div>
+      <div class="nav-item" onclick="showPanel('guide')">
+        <span class="nav-icon">◎</span> Guide
+      </div>
+    </nav>
+    <div class="sidebar-footer">v1.0 &middot; Local</div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="topbar-actions" id="topbar-actions">
+        <button class="btn" onclick="newDocument('quote')">＋ New Quote</button>
+        <button class="btn btn-primary" onclick="newDocument('invoice')">＋ New Invoice</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total Quotes</div>
+            <div class="stat-value" id="stat-quotes">0</div>
+            <div class="stat-sub">All time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Invoices</div>
+            <div class="stat-value" id="stat-invoices">0</div>
+            <div class="stat-sub">All time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Outstanding</div>
+            <div class="stat-value" id="stat-outstanding">$0</div>
+            <div class="stat-sub">Unpaid invoices</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Customers</div>
+            <div class="stat-value" id="stat-customers">0</div>
+            <div class="stat-sub">In database</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Activity</div>
+          </div>
+          <div class="doc-list" id="recent-activity">
+            <div class="empty">
+              <div class="empty-icon">◈</div>
+              <div class="empty-text">Nothing yet</div>
+              <div class="empty-sub">Create a quote or invoice to get started</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUOTES -->
+      <div class="panel" id="panel-quotes">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('quotes','list',this)">All Quotes</div>
+          <div class="tab" onclick="switchTab('quotes','create',this)">Create Quote</div>
+        </div>
+
+        <!-- Quote List -->
+        <div id="quotes-list">
+          <div class="card">
+            <div class="doc-list" id="quotes-doc-list">
+              <div class="empty">
+                <div class="empty-icon">◻</div>
+                <div class="empty-text">No quotes yet</div>
+                <div class="empty-sub">Click "Create Quote" tab to begin</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quote Create -->
+        <div id="quotes-create" style="display:none">
+          <div id="quote-form-area"></div>
+        </div>
+      </div>
+
+      <!-- INVOICES -->
+      <div class="panel" id="panel-invoices">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('invoices','list',this)">All Invoices</div>
+          <div class="tab" onclick="switchTab('invoices','create',this)">Create Invoice</div>
+        </div>
+
+        <div id="invoices-list">
+          <div class="card">
+            <div class="doc-list" id="invoices-doc-list">
+              <div class="empty">
+                <div class="empty-icon">◼</div>
+                <div class="empty-text">No invoices yet</div>
+                <div class="empty-sub">Click "Create Invoice" tab to begin</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="invoices-create" style="display:none">
+          <div id="invoice-form-area"></div>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="panel" id="panel-customers">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('customers','list',this)">All Customers</div>
+          <div class="tab" onclick="switchTab('customers','add',this)">Add Customer</div>
+        </div>
+
+        <div id="customers-list">
+          <div class="card">
+            <div class="doc-list" id="customers-doc-list">
+              <div class="empty">
+                <div class="empty-icon">◯</div>
+                <div class="empty-text">No customers yet</div>
+                <div class="empty-sub">Add customers to use in quotes and invoices</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="customers-add" style="display:none">
+          <div class="card">
+            <div class="card-header"><div class="card-title">New Customer</div></div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="field">
+                  <label>Name *</label>
+                  <input type="text" id="cust-name" placeholder="Full name or company">
+                </div>
+                <div class="field">
+                  <label>Email</label>
+                  <input type="email" id="cust-email" placeholder="email@example.com">
+                </div>
+                <div class="field">
+                  <label>Phone</label>
+                  <input type="text" id="cust-phone" placeholder="+61 000 000 000">
+                </div>
+                <div class="field">
+                  <label>ABN</label>
+                  <input type="text" id="cust-abn" placeholder="00 000 000 000">
+                </div>
+                <div class="field span-2">
+                  <label>Address</label>
+                  <textarea id="cust-address" rows="3" placeholder="Street, City, State, Postcode"></textarea>
+                </div>
+                <div class="field">
+                  <label>Notes</label>
+                  <input type="text" id="cust-notes" placeholder="Optional notes">
+                </div>
+              </div>
+              <div style="margin-top:20px">
+                <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+                <button class="btn btn-ghost" onclick="switchTab('customers','list',document.querySelector('#panel-customers .tab'))">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel" id="panel-settings">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Business Details</div></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Business Name *</label>
+                <input type="text" id="s-biz-name" placeholder="Your Business Name">
+              </div>
+              <div class="field">
+                <label>Tagline</label>
+                <input type="text" id="s-tagline" placeholder="e.g. Quality you can trust">
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <input type="email" id="s-email" placeholder="business@email.com">
+              </div>
+              <div class="field">
+                <label>Phone</label>
+                <input type="text" id="s-phone" placeholder="+61 000 000 000">
+              </div>
+              <div class="field">
+                <label>Website</label>
+                <input type="text" id="s-website" placeholder="www.yourbusiness.com">
+              </div>
+              <div class="field">
+                <label>ABN</label>
+                <input type="text" id="s-abn" placeholder="00 000 000 000">
+              </div>
+              <div class="field span-2">
+                <label>Address</label>
+                <textarea id="s-address" rows="2" placeholder="Street, Suburb, State, Postcode"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Invoice & Quote Settings</div></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Currency Symbol</label>
+                <input type="text" id="s-currency" placeholder="$" maxlength="4">
+              </div>
+              <div class="field">
+                <label>GST Rate (%)</label>
+                <input type="number" id="s-gst" placeholder="10" min="0" max="100">
+              </div>
+              <div class="field">
+                <label>Quote Prefix</label>
+                <input type="text" id="s-quote-prefix" placeholder="QT-">
+              </div>
+              <div class="field">
+                <label>Invoice Prefix</label>
+                <input type="text" id="s-inv-prefix" placeholder="INV-">
+              </div>
+              <div class="field">
+                <label>Default Payment Terms</label>
+                <select id="s-terms">
+                  <option value="Due on receipt">Due on receipt</option>
+                  <option value="7 days">Net 7 days</option>
+                  <option value="14 days">Net 14 days</option>
+                  <option value="30 days">Net 30 days</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Quote Valid For (days)</label>
+                <input type="number" id="s-valid" placeholder="30" min="1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Bank & Payment</div></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Bank Name</label>
+                <input type="text" id="s-bank" placeholder="Commonwealth Bank">
+              </div>
+              <div class="field">
+                <label>Account Name</label>
+                <input type="text" id="s-acct-name" placeholder="Business Account Name">
+              </div>
+              <div class="field">
+                <label>BSB</label>
+                <input type="text" id="s-bsb" placeholder="000-000">
+              </div>
+              <div class="field">
+                <label>Account Number</label>
+                <input type="text" id="s-acct-num" placeholder="000 000 000">
+              </div>
+              <div class="field span-2">
+                <label>Default Footer Note</label>
+                <textarea id="s-footer" rows="2" placeholder="e.g. Thank you for your business!"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+
+
+      <!-- GUIDE -->
+      <div class="panel" id="panel-guide">
+
+        <div class="guide-hero">
+          <div class="guide-hero-label">User Guide</div>
+          <div class="guide-hero-title">Get up and running<br><em>in minutes.</em></div>
+          <div class="guide-hero-sub">Quotient is a fully offline, browser-based quote and invoice tool. Everything saves locally to your device — no accounts, no cloud, no subscriptions.</div>
+        </div>
+
+        <!-- Quick Start -->
+        <div class="guide-section-title">Quick Start — 4 Steps</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+
+          <div class="guide-step-card">
+            <span class="guide-step-num">1</span>
+            <span class="guide-step-icon">⊞</span>
+            <div class="guide-step-title">Step One</div>
+            <div class="guide-step-heading">Configure Settings</div>
+            <div class="guide-step-body">Go to <strong>Settings</strong> and enter your business name, ABN, address, bank details, and GST rate. This info appears on every printed document.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <span class="guide-step-num">2</span>
+            <span class="guide-step-icon">◯</span>
+            <div class="guide-step-title">Step Two</div>
+            <div class="guide-step-heading">Add Customers</div>
+            <div class="guide-step-body">Visit <strong>Customers</strong> and save your clients. Saved customers auto-fill their address and contact details into your documents.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <span class="guide-step-num">3</span>
+            <span class="guide-step-icon">◻</span>
+            <div class="guide-step-title">Step Three</div>
+            <div class="guide-step-heading">Create a Quote</div>
+            <div class="guide-step-body">Go to <strong>Quotes → Create Quote</strong>. Select a customer, add line items with qty and rate, then hit <em>Save Quote</em>.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <span class="guide-step-num">4</span>
+            <span class="guide-step-icon">◼</span>
+            <div class="guide-step-title">Step Four</div>
+            <div class="guide-step-heading">Issue an Invoice</div>
+            <div class="guide-step-body">Once work is done, go to <strong>Invoices → Create Invoice</strong>, fill in details, save, then click <em>Preview &amp; Print</em> to generate a PDF.</div>
+          </div>
+
+        </div>
+
+        <!-- Features -->
+        <div class="guide-section-title">Feature Overview</div>
+        <div class="guide-grid" style="margin-bottom:20px">
+
+          <div class="guide-step-card">
+            <div class="guide-step-title">Dashboard</div>
+            <div class="guide-step-heading">Your command centre</div>
+            <div class="guide-step-body">See at a glance how many quotes, invoices, and customers you have, plus your total outstanding balance across all unpaid invoices. Recent documents are listed for quick access — click any row to open and edit.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-title">Quotes</div>
+            <div class="guide-step-heading">Create &amp; manage quotes</div>
+            <div class="guide-step-body">Quotes use sequential reference numbers (e.g. QT-0001). Set a valid-until date, add line items, and write notes or terms. Status options: <em>Pending</em>, <em>Accepted</em>, <em>Declined</em>. Click any row to reopen and edit.</div>
+            <div class="guide-tip"><strong>Tip</strong>Once a quote is accepted, recreate it as an invoice — open a new invoice and copy the details across.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-title">Invoices</div>
+            <div class="guide-step-heading">Bill your customers</div>
+            <div class="guide-step-body">Invoices include GST auto-calculation, due dates, and payment status tracking (<em>Unpaid</em>, <em>Paid</em>, <em>Partial</em>). Paid invoices display a rotated <em>PAID</em> stamp on the printed document. Your bank details appear in the footer automatically.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-title">Line Items</div>
+            <div class="guide-step-heading">Flexible line entry</div>
+            <div class="guide-step-body">Each line has a description, optional note, quantity, and unit rate. Totals calculate instantly. Add as many lines as needed with the <em>＋ Add Line</em> button, and remove any row with ×.</div>
+            <div class="guide-tip"><strong>Tip</strong>Use the note field for part numbers, model references, or labour codes — they appear subtly beneath the description on the printout.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-title">Print / PDF</div>
+            <div class="guide-step-heading">A4 print-ready output</div>
+            <div class="guide-step-body">Click <em>Preview &amp; Print</em> on any saved document to open the A4 preview. Use your browser's print dialog to save as PDF or send to a physical printer. Choose "Save as PDF" in the destination dropdown.</div>
+            <div class="guide-tip"><strong>Chrome / Edge tip</strong>Set margins to "None" or "Minimum" in print settings and disable browser headers &amp; footers for the cleanest result.</div>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-title">Data Storage</div>
+            <div class="guide-step-heading">100% local &amp; private</div>
+            <div class="guide-step-body">All data saves in your browser's <em>localStorage</em>. Nothing is sent to any server. Data persists between sessions as long as you use the same browser and haven't cleared site data. Back up by saving a copy of this HTML file alongside your exported data.</div>
+          </div>
+
+        </div>
+
+        <!-- FAQ -->
+        <div class="guide-section-title">Frequently Asked Questions</div>
+        <div style="margin-bottom:20px">
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">Can I use this offline?</div>
+            <div class="guide-faq-a">Yes — once loaded in your browser, Quotient works entirely offline. The only exception is the Google Fonts used for typography; if offline, your browser falls back to system serif and monospace fonts which still look clean.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">Will my data be lost if I close the browser?</div>
+            <div class="guide-faq-a">No. All data is saved automatically to your browser's localStorage whenever you click Save. It persists across browser restarts. However, clearing your browser's site data or using Incognito/Private mode will not retain data.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">How do I set GST to 0%?</div>
+            <div class="guide-faq-a">Go to Settings → Invoice &amp; Quote Settings and set the GST Rate field to 0. Save Settings. All new documents will show $0.00 GST and the subtotal will equal the total.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">Can I edit a quote or invoice after saving?</div>
+            <div class="guide-faq-a">Yes — click any document row in the Quotes or Invoices list, or click a row on the Dashboard. It opens in the Create/Edit tab pre-filled with all existing data. Make your changes and click Save again to update.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">How do I delete a document?</div>
+            <div class="guide-faq-a">Open the document for editing by clicking its row in the list. At the bottom of the form you'll see a red-tinted Delete button. Click it and confirm. This cannot be undone.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">How do I change the currency symbol?</div>
+            <div class="guide-faq-a">Go to Settings → Invoice &amp; Quote Settings → Currency Symbol. Enter any symbol ($, £, €, NZD, etc.). Save Settings and all calculations will use the new symbol. The preview will reflect this immediately.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">How do I back up my data?</div>
+            <div class="guide-faq-a">Open your browser's DevTools (press F12), go to Application → Local Storage → find this page's entry → locate the key <kbd>quotient-data</kbd> and copy the value to a text file. To restore, paste the value back in. Keep this file safe as a manual backup.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">Can I customise the quote or invoice number?</div>
+            <div class="guide-faq-a">Yes — the Reference No. field on every document is fully editable. The auto-generated prefix and counter are just a starting point. You can also change the prefix format in Settings (e.g. "INV-2026-" or "WS-") to match your existing numbering system.</div>
+          </div>
+
+          <div class="guide-faq-item">
+            <div class="guide-faq-q" onclick="toggleFaq(this)">Can I run this on my phone or tablet?</div>
+            <div class="guide-faq-a">Quotient is designed primarily for desktop use. While it will load on mobile browsers, the form layouts and table editing experience are best suited to a larger screen. For creating documents on the go, a tablet in landscape mode works reasonably well.</div>
+          </div>
+
+        </div>
+
+        <!-- Quick Reference -->
+        <div class="guide-section-title">Quick Reference</div>
+        <div class="card" style="margin-bottom:32px">
+          <div class="card-header"><div class="card-title">Workflow at a Glance</div></div>
+          <table class="guide-shortcut-table">
+            <tr><td>Create a new quote</td><td>Quotes → Create Quote tab &nbsp;<em>or</em>&nbsp; ＋ New Quote button</td></tr>
+            <tr><td>Create a new invoice</td><td>Invoices → Create Invoice tab &nbsp;<em>or</em>&nbsp; ＋ New Invoice button</td></tr>
+            <tr><td>Print / export as PDF</td><td>Save document → Preview &amp; Print → <kbd>Ctrl+P</kbd> → Save as PDF</td></tr>
+            <tr><td>Mark invoice as paid</td><td>Open invoice → Status dropdown → Paid → Save</td></tr>
+            <tr><td>Edit an existing document</td><td>Click the row in the list → edit fields → Save</td></tr>
+            <tr><td>Delete a document</td><td>Open document → Delete button at bottom of form</td></tr>
+            <tr><td>Add a customer</td><td>Customers → Add Customer tab</td></tr>
+            <tr><td>Update business details</td><td>Settings → Business Details → Save Settings</td></tr>
+            <tr><td>Change GST or currency</td><td>Settings → Invoice &amp; Quote Settings → Save Settings</td></tr>
+            <tr><td>Change document prefix</td><td>Settings → Quote Prefix / Invoice Prefix → Save Settings</td></tr>
+          </table>
+        </div>
+
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- PRINT PREVIEW MODAL -->
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal">
+    <div class="modal-topbar">
+      <div class="modal-title">Document Preview — A4</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="window.print()">⎙ Print / PDF</button>
+        <button class="btn" onclick="closePreview()">✕ Close</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="a4" id="a4-content"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑</div>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-sub" id="confirm-sub">This action cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-primary" style="background:#C0392B;border-color:#C0392B" onclick="executeDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───
+let data = {
+  settings: {
+    bizName: 'Your Business', tagline: '', email: '', phone: '', website: '',
+    abn: '', address: '', currency: '$', gst: 10,
+    quotePrefix: 'QT-', invPrefix: 'INV-', terms: 'Due on receipt',
+    validDays: 30, bank: '', acctName: '', bsb: '', acctNum: '', footer: ''
+  },
+  customers: [],
+  quotes: [],
+  invoices: [],
+  counters: { quote: 1, invoice: 1 }
+};
+
+
+// ─── FAQ TOGGLE ───
+function toggleFaq(el) {
+  el.closest('.guide-faq-item').classList.toggle('open');
+}
+
+function load() {
+  const saved = localStorage.getItem('quotient-data');
+  if (saved) {
+    data = JSON.parse(saved);
+  } else {
+    // ─── DEMO DATA ───
+    data = {
+      settings: {
+        bizName: "Waldo's Auto Workshop",
+        tagline: "Quality Repairs You Can Trust",
+        email: "waldo@waldosauto.com.au",
+        phone: "08 8123 4567",
+        website: "www.waldosauto.com.au",
+        abn: "51 824 753 556",
+        address: "14 Torrens Road, Hindmarsh SA 5007",
+        currency: "$",
+        gst: 10,
+        quotePrefix: "QT-",
+        invPrefix: "INV-",
+        terms: "14 days",
+        validDays: 30,
+        bank: "Commonwealth Bank",
+        acctName: "Waldo's Auto Workshop",
+        bsb: "065-123",
+        acctNum: "1234 5678",
+        footer: "Thank you for choosing Waldo's Auto Workshop. Payment via EFT appreciated."
+      },
+      customers: [
+        {
+          id: 1001,
+          name: "Sarah Mitchell",
+          email: "sarah.mitchell@gmail.com",
+          phone: "0412 789 234",
+          abn: "",
+          address: "22 Glenelg Street, Brighton SA 5048",
+          notes: "Regular customer. Prefers afternoon appointments."
+        },
+        {
+          id: 1002,
+          name: "Metro Couriers Pty Ltd",
+          email: "accounts@metrocouriers.com.au",
+          phone: "08 8234 5678",
+          abn: "33 601 248 771",
+          address: "88 Port Road, Thebarton SA 5031",
+          notes: "Fleet account. Invoices NET 30."
+        }
+      ],
+      quotes: [
+        {
+          id: 2001,
+          type: "quote",
+          ref: "QT-0001",
+          date: "2026-02-10",
+          due: "2026-03-10",
+          customerId: 1001,
+          customerName: "Sarah Mitchell",
+          title: "Full brake service & suspension check",
+          items: [
+            { desc: "Front brake pad replacement (Bendix HD)", note: "Part No. DB1234", qty: 1, rate: 180 },
+            { desc: "Rear brake pad replacement (Bendix HD)", note: "Part No. DB1235", qty: 1, rate: 180 },
+            { desc: "Brake fluid flush & bleed", note: "Castrol DOT 4", qty: 1, rate: 85 },
+            { desc: "Front suspension inspection & report", note: "", qty: 1, rate: 95 },
+            { desc: "Labour — 2.5 hrs @ $110/hr", note: "", qty: 2.5, rate: 110 }
+          ],
+          notes: "All parts sourced from Bendix premium range. Warranty: 12 months / 20,000 km on parts.",
+          terms: "Quote valid 30 days. 50% deposit required on booking.",
+          status: "accepted",
+          subtotal: 0,
+          gstAmount: 0,
+          total: 0
+        },
+        {
+          id: 2002,
+          type: "quote",
+          ref: "QT-0002",
+          date: "2026-02-18",
+          due: "2026-03-18",
+          customerId: 1002,
+          customerName: "Metro Couriers Pty Ltd",
+          title: "Fleet service — 3x Toyota HiAce (Feb 2026)",
+          items: [
+            { desc: "Log book service — Toyota HiAce 2.8TD", note: "VIN ending ...4421", qty: 1, rate: 320 },
+            { desc: "Log book service — Toyota HiAce 2.8TD", note: "VIN ending ...8832", qty: 1, rate: 320 },
+            { desc: "Log book service — Toyota HiAce 2.8TD", note: "VIN ending ...1195", qty: 1, rate: 320 },
+            { desc: "Oil filter replacement x3", note: "Ryco Z418", qty: 3, rate: 22 },
+            { desc: "Synthetic engine oil 5W-30 x3 (6L each)", note: "Castrol Magnatec", qty: 18, rate: 12 },
+            { desc: "Tyre rotation & pressure check x3 vehicles", note: "", qty: 3, rate: 45 }
+          ],
+          notes: "Vehicles to be dropped off by 8am Monday. Estimated completion same day.",
+          terms: "Net 30 days from invoice date. Fleet pricing applied.",
+          status: "draft",
+          subtotal: 0,
+          gstAmount: 0,
+          total: 0
+        }
+      ],
+      invoices: [
+        {
+          id: 3001,
+          type: "invoice",
+          ref: "INV-0001",
+          date: "2026-02-12",
+          due: "2026-02-26",
+          customerId: 1001,
+          customerName: "Sarah Mitchell",
+          title: "Full brake service & suspension check",
+          items: [
+            { desc: "Front brake pad replacement (Bendix HD)", note: "Part No. DB1234", qty: 1, rate: 180 },
+            { desc: "Rear brake pad replacement (Bendix HD)", note: "Part No. DB1235", qty: 1, rate: 180 },
+            { desc: "Brake fluid flush & bleed", note: "Castrol DOT 4", qty: 1, rate: 85 },
+            { desc: "Front suspension inspection & report", note: "", qty: 1, rate: 95 },
+            { desc: "Labour — 2.5 hrs @ $110/hr", note: "", qty: 2.5, rate: 110 }
+          ],
+          notes: "Work completed 12 Feb 2026. Vehicle collected same day. All parts under 12-month / 20,000 km warranty.",
+          terms: "Net 14 days",
+          status: "paid",
+          subtotal: 0,
+          gstAmount: 0,
+          total: 0
+        },
+        {
+          id: 3002,
+          type: "invoice",
+          ref: "INV-0002",
+          date: "2026-02-20",
+          due: "2026-03-22",
+          customerId: 1002,
+          customerName: "Metro Couriers Pty Ltd",
+          title: "Emergency repair — blown turbo (Van #2)",
+          items: [
+            { desc: "Turbocharger replacement — Garrett GT1749V", note: "Part No. GT-17491", qty: 1, rate: 1450 },
+            { desc: "Intercooler hose kit replacement", note: "", qty: 1, rate: 120 },
+            { desc: "Engine oil & filter change (post-turbo)", note: "Castrol EDGE 5W-40", qty: 1, rate: 95 },
+            { desc: "Labour — 5 hrs @ $110/hr", note: "Includes diagnostics", qty: 5, rate: 110 }
+          ],
+          notes: "Turbo failure caused by oil starvation. Recommend checking oil level weekly on this vehicle. 6-month warranty on turbo unit.",
+          terms: "Net 30 days",
+          status: "unpaid",
+          subtotal: 0,
+          gstAmount: 0,
+          total: 0
+        }
+      ],
+      counters: { quote: 3, invoice: 3 }
+    };
+
+    // Calculate totals for all docs
+    const gstRate = data.settings.gst / 100;
+    [...data.quotes, ...data.invoices].forEach(doc => {
+      doc.subtotal = doc.items.reduce((s, i) => s + i.qty * i.rate, 0);
+      doc.gstAmount = doc.subtotal * gstRate;
+      doc.total = doc.subtotal + doc.gstAmount;
+    });
+
+    save();
+  }
+}
+
+function save() {
+  localStorage.setItem('quotient-data', JSON.stringify(data));
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── NAVIGATION ───
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const titles = { dashboard: 'Dashboard', quotes: 'Quotes', invoices: 'Invoices', customers: 'Customers', settings: 'Settings', guide: 'Guide' };
+  document.getElementById('page-title').textContent = titles[name] || name;
+  const items = document.querySelectorAll('.nav-item');
+  items.forEach(i => { if (i.textContent.trim().toLowerCase().includes(name.slice(0,4))) i.classList.add('active'); });
+  if (name === 'dashboard') updateDashboard();
+  if (name === 'quotes') renderDocList('quotes');
+  if (name === 'invoices') renderDocList('invoices');
+  if (name === 'customers') renderCustomerList();
+  if (name === 'settings') loadSettings();
+
+  // topbar
+  const ta = document.getElementById('topbar-actions');
+  if (name === 'dashboard') ta.innerHTML = '<button class="btn" onclick="newDocument(\'quote\')">＋ New Quote</button><button class="btn btn-primary" onclick="newDocument(\'invoice\')">＋ New Invoice</button>';
+  else if (name === 'quotes') ta.innerHTML = '<button class="btn btn-primary" onclick="switchTab(\'quotes\',\'create\',document.querySelectorAll(\'#panel-quotes .tab\')[1]);buildDocForm(\'quote\')">＋ New Quote</button>';
+  else if (name === 'invoices') ta.innerHTML = '<button class="btn btn-primary" onclick="switchTab(\'invoices\',\'create\',document.querySelectorAll(\'#panel-invoices .tab\')[1]);buildDocForm(\'invoice\')">＋ New Invoice</button>';
+  else if (name === 'customers') ta.innerHTML = '<button class="btn btn-primary" onclick="switchTab(\'customers\',\'add\',document.querySelectorAll(\'#panel-customers .tab\')[1])">＋ Add Customer</button>';
+  else ta.innerHTML = '';
+}
+
+function switchTab(panel, view, el) {
+  document.querySelectorAll('#panel-' + panel + ' .tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (panel === 'quotes') {
+    document.getElementById('quotes-list').style.display = view === 'list' ? '' : 'none';
+    document.getElementById('quotes-create').style.display = view === 'create' ? '' : 'none';
+    if (view === 'create') buildDocForm('quote');
+  }
+  if (panel === 'invoices') {
+    document.getElementById('invoices-list').style.display = view === 'list' ? '' : 'none';
+    document.getElementById('invoices-create').style.display = view === 'create' ? '' : 'none';
+    if (view === 'create') buildDocForm('invoice');
+  }
+  if (panel === 'customers') {
+    document.getElementById('customers-list').style.display = view === 'list' ? '' : 'none';
+    document.getElementById('customers-add').style.display = view === 'add' ? '' : 'none';
+    if (view === 'list') renderCustomerList();
+  }
+}
+
+// ─── DOCUMENT FORM ───
+let currentItems = [];
+let editingDoc = null;
+
+function buildDocForm(type, existing) {
+  currentItems = existing ? JSON.parse(JSON.stringify(existing.items)) : [{ desc: '', qty: 1, rate: 0, note: '' }];
+  editingDoc = existing || null;
+
+  const custOptions = data.customers.map(c => `<option value="${c.id}" ${editingDoc && editingDoc.customerId == c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+  const ref = existing ? existing.ref : (type === 'quote' ? data.settings.quotePrefix : data.settings.invPrefix) + (type === 'quote' ? data.counters.quote : data.counters.invoice).toString().padStart(4, '0');
+
+  const html = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${type === 'quote' ? 'Quote' : 'Invoice'} Details</div>
+        ${editingDoc ? `<button class="btn btn-primary btn-sm" onclick="previewDoc()">Preview & Print</button>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="form-grid cols-3">
+          <div class="field">
+            <label>Reference No.</label>
+            <input type="text" id="doc-ref" value="${ref}">
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="doc-date" value="${existing ? existing.date : new Date().toISOString().split('T')[0]}">
+          </div>
+          <div class="field">
+            <label>${type === 'quote' ? 'Valid Until' : 'Due Date'}</label>
+            <input type="date" id="doc-due" value="${existing ? existing.due : getDefaultDue(type)}">
+          </div>
+          <div class="field span-3">
+            <label>Customer</label>
+            <select id="doc-customer">
+              <option value="">— Select or type below —</option>
+              ${custOptions}
+              <option value="custom">Custom (fill below)</option>
+            </select>
+          </div>
+          <div class="field span-3" id="custom-cust-wrap" style="display:none">
+            <label>Customer Name (custom)</label>
+            <input type="text" id="doc-cust-custom" placeholder="Customer name">
+          </div>
+          <div class="field span-3">
+            <label>Title / Subject</label>
+            <input type="text" id="doc-title" value="${existing ? existing.title : ''}" placeholder="e.g. Brake service and inspection">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Line Items</div></div>
+      <div class="card-body" style="padding:0">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width:42%">Description</th>
+              <th>Note</th>
+              <th style="width:70px">Qty</th>
+              <th style="width:110px">Rate (${data.settings.currency})</th>
+              <th class="right" style="width:110px">Total</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+        <div class="items-add">
+          <button class="btn btn-ghost" onclick="addItem()">＋ Add Line</button>
+        </div>
+      </div>
+
+      <div class="totals-wrap">
+        <div class="totals">
+          <div class="total-row">
+            <span class="total-label">Subtotal</span>
+            <span class="total-value" id="t-sub">${data.settings.currency}0.00</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">GST (${data.settings.gst}%)</span>
+            <span class="total-value" id="t-gst">${data.settings.currency}0.00</span>
+          </div>
+          <div class="total-row grand">
+            <span class="total-label">Total</span>
+            <span class="total-value" id="t-total">${data.settings.currency}0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Notes & Terms</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Notes to Customer</label>
+            <textarea id="doc-notes" rows="3" placeholder="Any additional notes...">${existing ? existing.notes : ''}</textarea>
+          </div>
+          <div class="field">
+            <label>Terms</label>
+            <textarea id="doc-terms" rows="3" placeholder="Payment terms...">${existing ? existing.terms : data.settings.terms}</textarea>
+          </div>
+          ${type === 'invoice' ? `
+          <div class="field">
+            <label>Status</label>
+            <select id="doc-status">
+              <option value="draft" ${existing && existing.status === 'draft' ? 'selected' : ''}>Draft</option>
+              <option value="unpaid" ${!existing || (existing.status !== 'draft' && existing.status !== 'paid' && existing.status !== 'partial') ? 'selected' : ''}>Unpaid</option>
+              <option value="paid" ${existing && existing.status === 'paid' ? 'selected' : ''}>Paid</option>
+              <option value="partial" ${existing && existing.status === 'partial' ? 'selected' : ''}>Partial</option>
+            </select>
+          </div>` : `
+          <div class="field">
+            <label>Status</label>
+            <select id="doc-status">
+              <option value="draft" ${existing && existing.status === 'draft' ? 'selected' : ''}>Draft</option>
+              <option value="pending" ${!existing || (existing.status !== 'draft' && existing.status !== 'accepted' && existing.status !== 'declined') ? 'selected' : ''}>Pending</option>
+              <option value="accepted" ${existing && existing.status === 'accepted' ? 'selected' : ''}>Accepted</option>
+              <option value="declined" ${existing && existing.status === 'declined' ? 'selected' : ''}>Declined</option>
+            </select>
+          </div>`}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:32px;align-items:center">
+      <button class="btn btn-primary" onclick="saveDoc('${type}')">Save ${type === 'quote' ? 'Quote' : 'Invoice'}</button>
+      <button class="btn" onclick="saveDraft('${type}')">Save as Draft</button>
+      <button class="btn" onclick="previewDoc()">⎙ Preview & Print</button>
+      <div style="flex:1"></div>
+      ${editingDoc ? `<button class="btn" style="color:#C0392B;border-color:#FFE5E5;background:#fff" onclick="confirmDelete('${type}','${editingDoc.id}')">🗑 Delete</button>` : ''}
+    </div>
+  `;
+
+  document.getElementById(type + '-form-area').innerHTML = html;
+
+  document.getElementById('doc-customer').addEventListener('change', function() {
+    document.getElementById('custom-cust-wrap').style.display = this.value === 'custom' ? '' : 'none';
+  });
+
+  renderItems();
+}
+
+function getDefaultDue(type) {
+  const d = new Date();
+  if (type === 'quote') d.setDate(d.getDate() + (parseInt(data.settings.validDays) || 30));
+  else d.setDate(d.getDate() + 30);
+  return d.toISOString().split('T')[0];
+}
+
+function renderItems() {
+  const tbody = document.getElementById('items-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = currentItems.map((item, i) => `
+    <tr>
+      <td><input type="text" value="${item.desc}" oninput="currentItems[${i}].desc=this.value" placeholder="Item description"></td>
+      <td><input type="text" value="${item.note || ''}" oninput="currentItems[${i}].note=this.value" placeholder="Optional note"></td>
+      <td><input type="number" value="${item.qty}" oninput="currentItems[${i}].qty=parseFloat(this.value)||0;updateTotals()" style="text-align:center" min="0"></td>
+      <td><input type="number" value="${item.rate}" oninput="currentItems[${i}].rate=parseFloat(this.value)||0;updateTotals()" step="0.01" min="0"></td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:var(--ink)">${data.settings.currency}${(item.qty * item.rate).toFixed(2)}</td>
+      <td><button class="item-delete" onclick="removeItem(${i})">×</button></td>
+    </tr>
+  `).join('');
+  updateTotals();
+}
+
+function addItem() {
+  currentItems.push({ desc: '', qty: 1, rate: 0, note: '' });
+  renderItems();
+}
+
+function removeItem(i) {
+  if (currentItems.length === 1) { currentItems[0] = { desc: '', qty: 1, rate: 0, note: '' }; renderItems(); return; }
+  currentItems.splice(i, 1);
+  renderItems();
+}
+
+function updateTotals() {
+  const sub = currentItems.reduce((s, i) => s + (i.qty * i.rate), 0);
+  const gst = sub * (parseFloat(data.settings.gst) / 100);
+  const total = sub + gst;
+  const cur = data.settings.currency;
+  const el = id => document.getElementById(id);
+  if (el('t-sub')) el('t-sub').textContent = cur + sub.toFixed(2);
+  if (el('t-gst')) el('t-gst').textContent = cur + gst.toFixed(2);
+  if (el('t-total')) el('t-total').textContent = cur + total.toFixed(2);
+  // update line totals
+  renderItems();
+}
+
+function saveDoc(type) {
+  const ref = document.getElementById('doc-ref').value.trim();
+  const custSel = document.getElementById('doc-customer').value;
+  let customerName = '';
+  let customerId = null;
+  if (custSel === 'custom') {
+    customerName = document.getElementById('doc-cust-custom').value.trim();
+  } else if (custSel) {
+    const c = data.customers.find(c => c.id == custSel);
+    if (c) { customerName = c.name; customerId = c.id; }
+  }
+
+  const doc = {
+    id: editingDoc ? editingDoc.id : Date.now(),
+    type,
+    ref: ref || (type === 'quote' ? data.settings.quotePrefix : data.settings.invPrefix) + Date.now(),
+    date: document.getElementById('doc-date').value,
+    due: document.getElementById('doc-due').value,
+    customerId,
+    customerName,
+    title: document.getElementById('doc-title').value,
+    items: JSON.parse(JSON.stringify(currentItems)),
+    notes: document.getElementById('doc-notes').value,
+    terms: document.getElementById('doc-terms').value,
+    status: document.getElementById('doc-status').value,
+  };
+
+  const sub = currentItems.reduce((s, i) => s + (i.qty * i.rate), 0);
+  const gst = sub * (parseFloat(data.settings.gst) / 100);
+  doc.subtotal = sub;
+  doc.gstAmount = gst;
+  doc.total = sub + gst;
+
+  if (type === 'quote') {
+    if (editingDoc) {
+      const idx = data.quotes.findIndex(q => q.id === editingDoc.id);
+      data.quotes[idx] = doc;
+    } else {
+      data.quotes.unshift(doc);
+      data.counters.quote++;
+    }
+  } else {
+    if (editingDoc) {
+      const idx = data.invoices.findIndex(i => i.id === editingDoc.id);
+      data.invoices[idx] = doc;
+    } else {
+      data.invoices.unshift(doc);
+      data.counters.invoice++;
+    }
+  }
+
+  save();
+  editingDoc = doc;
+  toast('Saved ✓');
+}
+
+// ─── CONFIRM MODAL ───
+let _pendingDelete = null;
+
+function confirmDelete(type, id) {
+  _pendingDelete = { type, id };
+  const doc = (type === 'quote' ? data.quotes : data.invoices).find(d => d.id == id);
+  const label = doc ? `${doc.ref}${doc.customerName ? ' — ' + doc.customerName : ''}` : 'this document';
+  document.getElementById('confirm-title').textContent = 'Delete Document?';
+  document.getElementById('confirm-sub').textContent = `This will permanently remove ${label}. This cannot be undone.`;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+
+function confirmDeleteCustomer(id) {
+  _pendingDelete = { type: '__customer__', id };
+  const c = data.customers.find(c => c.id === id);
+  document.getElementById('confirm-title').textContent = 'Remove Customer?';
+  document.getElementById('confirm-sub').textContent = `Remove ${c ? c.name : 'this customer'} from your customer list?`;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+
+function closeConfirm() {
+  _pendingDelete = null;
+  document.getElementById('confirm-overlay').classList.remove('open');
+}
+
+function executeDelete() {
+  if (!_pendingDelete) return;
+  const { type, id } = _pendingDelete;
+  closeConfirm();
+  if (type === '__customer__') {
+    data.customers = data.customers.filter(c => c.id !== id);
+    save();
+    toast('Customer removed');
+    renderCustomerList();
+    return;
+  }
+  if (type === 'quote') data.quotes = data.quotes.filter(q => q.id != id);
+  else data.invoices = data.invoices.filter(i => i.id != id);
+  save();
+  toast('Deleted ✓');
+  editingDoc = null;
+  const panel = type === 'quote' ? 'quotes' : 'invoices';
+  switchTab(panel, 'list', document.querySelector('#panel-' + panel + ' .tab'));
+  renderDocList(panel);
+  updateDashboard();
+}
+
+function deleteDoc(type, id) {
+  confirmDelete(type, id);
+}
+
+// ─── SAVE AS DRAFT ───
+function saveDraft(type) {
+  const statusEl = document.getElementById('doc-status');
+  if (statusEl) statusEl.value = 'draft';
+  saveDoc(type);
+  toast('Saved as draft');
+}
+
+// ─── DOC LISTS ───
+function renderDocList(type) {
+  const docs = type === 'quotes' ? data.quotes : data.invoices;
+  const container = document.getElementById(type + '-doc-list');
+  if (!docs.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">${type === 'quotes' ? '◻' : '◼'}</div><div class="empty-text">No ${type} yet</div><div class="empty-sub">Create your first ${type === 'quotes' ? 'quote' : 'invoice'}</div></div>`;
+    return;
+  }
+  container.innerHTML = docs.map(d => {
+    const badgeClass = d.status || (d.type === 'quote' ? 'quote' : 'invoice');
+    const isDraft = d.status === 'draft';
+    return `
+    <div class="doc-item" onclick="openDoc('${d.type}', ${d.id})" style="${isDraft ? 'opacity:0.7' : ''}">
+      <span class="doc-badge ${badgeClass}">${d.status || d.type}</span>
+      <div class="doc-info">
+        <div class="doc-ref">${d.ref}${isDraft ? ' <span style="font-family:DM Mono,monospace;font-size:9px;color:var(--ink-muted);letter-spacing:1px">DRAFT</span>' : ''}</div>
+        <div class="doc-customer">${d.customerName || '—'}</div>
+        ${d.title ? `<div class="doc-date">${d.title}</div>` : ''}
+      </div>
+      <div>
+        <div class="doc-amount" style="${isDraft ? 'color:var(--ink-muted)' : ''}">${data.settings.currency}${d.total.toFixed(2)}</div>
+        <div class="doc-date" style="text-align:right">${d.date}</div>
+      </div>
+      <div class="doc-actions">
+        ${!isDraft ? `<button class="btn btn-ghost" style="padding:6px 10px" onclick="event.stopPropagation();previewById('${d.type}',${d.id})">⎙</button>` : ''}
+        <button class="doc-delete-btn" title="Delete" onclick="event.stopPropagation();confirmDelete('${d.type}',${d.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openDoc(type, id) {
+  const doc = (type === 'quote' ? data.quotes : data.invoices).find(d => d.id == id);
+  if (!doc) return;
+  showPanel(type === 'quote' ? 'quotes' : 'invoices');
+  const tabEl = document.querySelectorAll('#panel-' + (type === 'quote' ? 'quotes' : 'invoices') + ' .tab')[1];
+  switchTab(type === 'quote' ? 'quotes' : 'invoices', 'create', tabEl);
+  buildDocForm(type, doc);
+}
+
+function previewById(type, id) {
+  const doc = (type === 'quote' ? data.quotes : data.invoices).find(d => d.id == id);
+  if (!doc) return;
+  editingDoc = doc;
+  currentItems = doc.items;
+  previewDoc();
+}
+
+// ─── CUSTOMERS ───
+function saveCustomer() {
+  const name = document.getElementById('cust-name').value.trim();
+  if (!name) { toast('Name is required'); return; }
+  const c = {
+    id: Date.now(),
+    name,
+    email: document.getElementById('cust-email').value,
+    phone: document.getElementById('cust-phone').value,
+    abn: document.getElementById('cust-abn').value,
+    address: document.getElementById('cust-address').value,
+    notes: document.getElementById('cust-notes').value,
+  };
+  data.customers.unshift(c);
+  save();
+  toast('Customer saved ✓');
+  // clear
+  ['cust-name','cust-email','cust-phone','cust-abn','cust-address','cust-notes'].forEach(id => document.getElementById(id).value = '');
+  switchTab('customers', 'list', document.querySelectorAll('#panel-customers .tab')[0]);
+  renderCustomerList();
+}
+
+function renderCustomerList() {
+  const container = document.getElementById('customers-doc-list');
+  if (!data.customers.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">◯</div><div class="empty-text">No customers</div><div class="empty-sub">Add a customer to get started</div></div>`;
+    return;
+  }
+  container.innerHTML = data.customers.map(c => `
+    <div class="doc-item">
+      <div class="doc-info">
+        <div class="doc-customer">${c.name}</div>
+        <div class="doc-date">${c.email || ''}${c.email && c.phone ? ' · ' : ''}${c.phone || ''}</div>
+        ${c.abn ? `<div class="doc-date">ABN ${c.abn}</div>` : ''}
+      </div>
+      <div class="doc-actions">
+        <button class="doc-delete-btn" title="Delete customer" onclick="confirmDeleteCustomer(${c.id})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteCustomer(id) {
+  confirmDeleteCustomer(id);
+}
+
+// ─── SETTINGS ───
+function loadSettings() {
+  const s = data.settings;
+  const map = {
+    's-biz-name': s.bizName, 's-tagline': s.tagline, 's-email': s.email,
+    's-phone': s.phone, 's-website': s.website, 's-abn': s.abn, 's-address': s.address,
+    's-currency': s.currency, 's-gst': s.gst, 's-quote-prefix': s.quotePrefix,
+    's-inv-prefix': s.invPrefix, 's-valid': s.validDays,
+    's-bank': s.bank, 's-acct-name': s.acctName, 's-bsb': s.bsb, 's-acct-num': s.acctNum,
+    's-footer': s.footer
+  };
+  Object.entries(map).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val || '';
+  });
+  const terms = document.getElementById('s-terms');
+  if (terms) terms.value = s.terms;
+}
+
+function saveSettings() {
+  data.settings = {
+    bizName: document.getElementById('s-biz-name').value || 'Your Business',
+    tagline: document.getElementById('s-tagline').value,
+    email: document.getElementById('s-email').value,
+    phone: document.getElementById('s-phone').value,
+    website: document.getElementById('s-website').value,
+    abn: document.getElementById('s-abn').value,
+    address: document.getElementById('s-address').value,
+    currency: document.getElementById('s-currency').value || '$',
+    gst: parseFloat(document.getElementById('s-gst').value) || 10,
+    quotePrefix: document.getElementById('s-quote-prefix').value || 'QT-',
+    invPrefix: document.getElementById('s-inv-prefix').value || 'INV-',
+    terms: document.getElementById('s-terms').value,
+    validDays: parseInt(document.getElementById('s-valid').value) || 30,
+    bank: document.getElementById('s-bank').value,
+    acctName: document.getElementById('s-acct-name').value,
+    bsb: document.getElementById('s-bsb').value,
+    acctNum: document.getElementById('s-acct-num').value,
+    footer: document.getElementById('s-footer').value,
+  };
+  save();
+  toast('Settings saved ✓');
+}
+
+// ─── DASHBOARD ───
+function updateDashboard() {
+  document.getElementById('stat-quotes').textContent = data.quotes.length;
+  document.getElementById('stat-invoices').textContent = data.invoices.length;
+  document.getElementById('stat-customers').textContent = data.customers.length;
+  const outstanding = data.invoices.filter(i => i.status !== 'paid').reduce((s, i) => s + i.total, 0);
+  document.getElementById('stat-outstanding').textContent = data.settings.currency + outstanding.toFixed(2);
+
+  const all = [...data.quotes, ...data.invoices].sort((a, b) => b.id - a.id).slice(0, 8);
+  const container = document.getElementById('recent-activity');
+  if (!all.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">Nothing yet</div><div class="empty-sub">Create a quote or invoice to get started</div></div>`;
+    return;
+  }
+  container.innerHTML = all.map(d => {
+    const badgeClass = d.status || (d.type === 'quote' ? 'quote' : 'invoice');
+    const isDraft = d.status === 'draft';
+    return `
+    <div class="doc-item" onclick="openDoc('${d.type}', ${d.id})" style="${isDraft ? 'opacity:0.7' : ''}">
+      <span class="doc-badge ${badgeClass}">${d.status || d.type}</span>
+      <div class="doc-info">
+        <div class="doc-ref">${d.ref}</div>
+        <div class="doc-customer">${d.customerName || '—'}</div>
+      </div>
+      <div class="doc-amount" style="${isDraft ? 'color:var(--ink-muted)' : ''}">${data.settings.currency}${d.total.toFixed(2)}</div>
+      ${!isDraft ? `<button class="btn btn-ghost" style="padding:6px 10px" onclick="event.stopPropagation();previewById('${d.type}',${d.id})">⎙</button>` : ''}
+      <button class="doc-delete-btn" title="Delete" onclick="event.stopPropagation();confirmDelete('${d.type}',${d.id})">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+// ─── PREVIEW ───
+function previewDoc() {
+  const s = data.settings;
+  const doc = editingDoc;
+  if (!doc) { toast('Save the document first'); return; }
+
+  // Get customer details
+  let cust = null;
+  if (doc.customerId) cust = data.customers.find(c => c.id == doc.customerId);
+
+  const sub = doc.subtotal || currentItems.reduce((s, i) => s + (i.qty * i.rate), 0);
+  const gst = doc.gstAmount || sub * (parseFloat(s.gst) / 100);
+  const total = doc.total || sub + gst;
+  const cur = s.currency;
+
+  const items = doc.items || currentItems;
+
+  const isPaid = doc.status === 'paid';
+  const isDraft = doc.status === 'draft';
+
+  const a4 = `
+    <div class="a4-accent-bar"></div>
+    ${isPaid ? `<div class="a4-status-stamp" style="display:block">PAID</div>` : ''}
+    ${isDraft ? `<div class="a4-draft-stamp">DRAFT</div>` : ''}
+
+    <div class="a4-header">
+      <div>
+        <div class="a4-brand-name">${s.bizName}</div>
+        <div class="a4-brand-detail">
+          ${s.tagline ? s.tagline + '<br>' : ''}
+          ${s.address ? s.address.replace(/\n/g, '<br>') + '<br>' : ''}
+          ${s.phone ? s.phone + ' &nbsp;' : ''}${s.email || ''}<br>
+          ${s.website ? s.website + ' &nbsp;' : ''}${s.abn ? 'ABN ' + s.abn : ''}
+        </div>
+      </div>
+      <div class="a4-doc-type">
+        <div class="a4-doc-word">${doc.type === 'quote' ? 'Quote' : 'Invoice'}</div>
+        <div class="a4-doc-ref">${doc.ref}</div>
+      </div>
+    </div>
+
+    <div class="a4-rule"></div>
+
+    <div class="a4-meta">
+      <div>
+        <div class="a4-meta-label">Bill To</div>
+        <div class="a4-meta-value">${doc.customerName || '—'}</div>
+        ${cust && cust.address ? `<div class="a4-meta-sub">${cust.address.replace(/\n/g,'<br>')}</div>` : ''}
+        ${cust && cust.email ? `<div class="a4-meta-sub">${cust.email}</div>` : ''}
+        ${cust && cust.abn ? `<div class="a4-meta-sub">ABN ${cust.abn}</div>` : ''}
+      </div>
+      <div>
+        <div class="a4-meta-label">Date</div>
+        <div class="a4-meta-value">${formatDate(doc.date)}</div>
+        <br>
+        <div class="a4-meta-label">${doc.type === 'quote' ? 'Valid Until' : 'Due Date'}</div>
+        <div class="a4-meta-value">${formatDate(doc.due)}</div>
+      </div>
+      <div>
+        ${doc.title ? `<div class="a4-meta-label">Subject</div><div class="a4-meta-value">${doc.title}</div>` : ''}
+        <br>
+        ${doc.terms ? `<div class="a4-meta-label">Terms</div><div class="a4-meta-sub">${doc.terms}</div>` : ''}
+      </div>
+    </div>
+
+    <table class="a4-items">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th class="right" style="width:60px">Qty</th>
+          <th class="right" style="width:100px">Rate (${cur})</th>
+          <th class="right" style="width:110px">Amount (${cur})</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(item => `
+          <tr>
+            <td>${item.desc || '—'}${item.note ? `<br><span style="color:#7A7068;font-size:10px">${item.note}</span>` : ''}</td>
+            <td class="right">${item.qty}</td>
+            <td class="right">${cur}${parseFloat(item.rate).toFixed(2)}</td>
+            <td class="right">${cur}${(item.qty * item.rate).toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div class="a4-totals">
+      <div class="a4-totals-inner">
+        <div class="a4-total-row">
+          <span class="a4-total-label">Subtotal</span>
+          <span class="a4-total-value">${cur}${sub.toFixed(2)}</span>
+        </div>
+        <div class="a4-total-row">
+          <span class="a4-total-label">GST (${s.gst}%)</span>
+          <span class="a4-total-value">${cur}${gst.toFixed(2)}</span>
+        </div>
+        <div class="a4-total-row grand">
+          <span class="a4-total-label">Total</span>
+          <span class="a4-total-value">${cur}${total.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
+
+    ${doc.notes ? `<div style="margin-bottom:24px"><div class="a4-meta-label" style="margin-bottom:4px">Notes</div><div style="font-size:11px;color:#3D3630;line-height:1.6">${doc.notes}</div></div>` : ''}
+
+    <div class="a4-footer">
+      <div class="a4-footer-note">
+        ${s.bank || s.acctNum ? `<strong>Payment Details</strong><br>
+        ${s.bank ? s.bank + ' &nbsp;·&nbsp; ' : ''}${s.acctName ? s.acctName + '<br>' : ''}
+        ${s.bsb ? 'BSB: ' + s.bsb + ' &nbsp;&nbsp; ' : ''}${s.acctNum ? 'Acc: ' + s.acctNum : ''}<br>` : ''}
+        ${s.footer || 'Thank you for your business.'}
+      </div>
+      <div class="a4-footer-brand">
+        ${s.bizName}<br>
+        ${s.email || ''}${s.email && s.phone ? ' · ' : ''}${s.phone || ''}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('a4-content').innerHTML = a4;
+  document.getElementById('preview-modal').classList.add('open');
+}
+
+function closePreview() {
+  document.getElementById('preview-modal').classList.remove('open');
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const parts = d.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${parseInt(parts[2])} ${months[parseInt(parts[1])-1]} ${parts[0]}`;
+}
+
+function newDocument(type) {
+  showPanel(type === 'quote' ? 'quotes' : 'invoices');
+  const panelId = type === 'quote' ? 'quotes' : 'invoices';
+  const tabEl = document.querySelectorAll('#panel-' + panelId + ' .tab')[1];
+  switchTab(panelId, 'create', tabEl);
+  buildDocForm(type);
+}
+
+// Close modal on backdrop click
+document.getElementById('preview-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePreview();
+});
+
+// ─── INIT ───
+load();
+updateDashboard();
+</script>
+</body>
+</html>
