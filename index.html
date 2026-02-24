@@ -884,11 +884,266 @@
     padding: 2px 6px;
     color: var(--ink);
   }
+
+  /* ══════════════════════════════════════════
+     RESPONSIVE — Cross-device optimisation
+  ══════════════════════════════════════════ */
+
+  /* Hamburger toggle button (hidden on desktop) */
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 4px;
+    flex-direction: column;
+    gap: 4px;
+    transition: background 0.15s;
+  }
+  .menu-toggle:hover { background: var(--parchment); }
+  .menu-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  /* Sidebar overlay (mobile) */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,22,18,0.5);
+    z-index: 19;
+  }
+  .sidebar-overlay.open { display: block; }
+
+  /* ── LARGE TABLET / SMALL LAPTOP  (≤1100px) ── */
+  @media (max-width: 1100px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .guide-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── TABLET  (≤900px) ── */
+  @media (max-width: 900px) {
+    /* Sidebar collapses to icon rail */
+    .sidebar {
+      width: 64px;
+      min-width: 64px;
+      overflow: hidden;
+      transition: width 0.25s ease;
+    }
+    .sidebar.expanded { width: 220px; min-width: 220px; }
+
+    .logo { padding: 20px 0; display: flex; justify-content: center; }
+    .sidebar.expanded .logo { padding: 20px 24px; justify-content: flex-start; }
+    .logo-word { display: none; }
+    .logo-tag { display: none; }
+    .sidebar.expanded .logo-word { display: block; }
+    .sidebar.expanded .logo-tag { display: block; }
+
+    /* Show only icons when collapsed */
+    .nav-section { display: none; }
+    .sidebar.expanded .nav-section { display: block; }
+
+    .nav-item {
+      padding: 12px 0;
+      justify-content: center;
+      gap: 0;
+      font-size: 0; /* hide label text */
+      border-left: none;
+      border-right: 2px solid transparent;
+    }
+    .sidebar.expanded .nav-item {
+      padding: 10px 24px;
+      justify-content: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      border-right: none;
+      border-left: 2px solid transparent;
+    }
+    .nav-item.active {
+      border-right-color: var(--accent);
+      border-left-color: transparent;
+    }
+    .sidebar.expanded .nav-item.active {
+      border-left-color: var(--accent);
+      border-right-color: transparent;
+    }
+    .nav-icon { width: 20px; font-size: 16px; opacity: 1; }
+
+    .sidebar-footer { display: none; }
+    .sidebar.expanded .sidebar-footer { display: block; }
+
+    .content { padding: 20px; }
+    .topbar { padding: 0 20px; }
+
+    /* Sidebar toggle button on topbar */
+    .menu-toggle { display: flex; }
+
+    .form-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+    .field.span-3 { grid-column: span 2; }
+
+    /* Guide quick-start 4-col → 2-col */
+    #panel-guide [style*="grid-template-columns:1fr 1fr 1fr 1fr"] {
+      grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* Modal padding reduce */
+    .modal-overlay { padding: 16px; }
+    .modal-body { padding: 16px; }
+  }
+
+  /* ── MOBILE  (≤640px) ── */
+  @media (max-width: 640px) {
+    /* Sidebar becomes full off-canvas drawer */
+    .sidebar {
+      position: fixed;
+      left: -240px;
+      top: 0; bottom: 0;
+      width: 220px !important;
+      min-width: 220px !important;
+      z-index: 20;
+      transition: left 0.25s ease;
+      box-shadow: none;
+    }
+    .sidebar.expanded {
+      left: 0;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+    }
+
+    /* Restore full sidebar styles for drawer */
+    .logo { padding: 24px 24px 20px !important; justify-content: flex-start !important; }
+    .logo-word { display: block !important; }
+    .logo-tag { display: block !important; }
+    .nav-section { display: block !important; }
+    .nav-item {
+      padding: 10px 24px !important;
+      justify-content: flex-start !important;
+      gap: 10px !important;
+      font-size: 13.5px !important;
+      border-left: 2px solid transparent !important;
+      border-right: none !important;
+    }
+    .nav-item.active {
+      border-left-color: var(--accent) !important;
+      border-right-color: transparent !important;
+    }
+    .nav-icon { width: 16px !important; font-size: 13px !important; }
+    .sidebar-footer { display: block !important; }
+
+    .main { width: 100%; }
+    .topbar { padding: 0 16px; height: 52px; }
+    .page-title { font-size: 16px; }
+
+    /* Hide secondary topbar action labels on mobile */
+    .topbar-actions .btn { padding: 7px 12px; font-size: 12px; }
+
+    .content { padding: 16px; }
+
+    /* All grids → single column */
+    .form-grid,
+    .form-grid.cols-3 { grid-template-columns: 1fr !important; }
+    .field.span-2,
+    .field.span-3 { grid-column: span 1 !important; }
+
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { padding: 14px 16px; }
+    .stat-value { font-size: 22px; }
+
+    /* Guide grids → single col */
+    .guide-grid,
+    .guide-grid.cols-3 { grid-template-columns: 1fr !important; }
+    #panel-guide [style*="grid-template-columns:1fr 1fr 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+    .guide-step-num { display: none; }
+    .guide-hero { padding: 24px 20px; }
+    .guide-hero-title { font-size: 24px; }
+
+    /* Line items table — horizontal scroll wrapper */
+    .items-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -1px;
+    }
+    .items-table { min-width: 520px; }
+
+    /* Totals full width */
+    .totals-wrap { padding: 16px; }
+    .totals { width: 100%; }
+
+    /* Doc list items — stack info */
+    .doc-item { padding: 12px 16px; gap: 10px; flex-wrap: wrap; }
+    .doc-badge { min-width: 44px; font-size: 8px; }
+    .doc-info { min-width: 0; flex: 1 1 140px; }
+    .doc-amount { font-size: 13px; }
+    .doc-actions { flex-shrink: 0; }
+
+    /* Action bar wraps on mobile */
+    #panel-quotes [style*="display:flex;gap:10px;margin-bottom"],
+    #panel-invoices [style*="display:flex;gap:10px;margin-bottom"] {
+      flex-wrap: wrap;
+    }
+
+    /* Card padding tighter */
+    .card-header { padding: 14px 16px; }
+    .card-body { padding: 16px; }
+
+    /* Tabs scroll horizontally */
+    .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+    .tab { white-space: nowrap; padding: 10px 14px; font-size: 12.5px; }
+
+    /* Modal full screen */
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal { border-radius: 12px 12px 0 0; max-height: 96vh; width: 100%; }
+    .modal-topbar { padding: 14px 16px; }
+    .modal-body { padding: 12px; }
+
+    /* A4 preview scales to fit */
+    .a4 {
+      width: 100%;
+      min-height: auto;
+      padding: 32px 24px 80px;
+      transform-origin: top left;
+      font-size: 10px;
+    }
+
+    /* Confirm modal */
+    .confirm-box { width: calc(100vw - 32px); padding: 24px 20px; }
+
+    /* Toast */
+    .toast { left: 16px; right: 16px; bottom: 16px; text-align: center; }
+  }
+
+  /* ── VERY SMALL  (≤380px) ── */
+  @media (max-width: 380px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .topbar-actions { gap: 6px; }
+    .topbar-actions .btn { padding: 6px 10px; font-size: 11px; }
+  }
+
+  /* Touch device improvements */
+  @media (hover: none) {
+    /* Always show delete button on touch (no hover state) */
+    .doc-delete-btn { opacity: 0.5; }
+    /* Larger touch targets */
+    .nav-item { padding-top: 13px; padding-bottom: 13px; }
+    input, select, textarea { font-size: 16px; } /* prevent iOS zoom */
+    .btn { min-height: 40px; }
+    .tab { min-height: 44px; display: flex; align-items: center; }
+  }
+
 </style>
 </head>
 <body>
 
 <div class="app">
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo">
@@ -925,6 +1180,9 @@
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
+      <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="page-title" id="page-title">Dashboard</div>
       <div class="topbar-actions" id="topbar-actions">
         <button class="btn" onclick="newDocument('quote')">＋ New Quote</button>
@@ -1675,7 +1933,7 @@ function buildDocForm(type, existing) {
     <div class="card">
       <div class="card-header"><div class="card-title">Line Items</div></div>
       <div class="card-body" style="padding:0">
-        <table class="items-table">
+        <div class="items-table-wrap"><table class="items-table">
           <thead>
             <tr>
               <th style="width:42%">Description</th>
@@ -2174,77 +2432,3 @@ function previewDoc() {
           <tr>
             <td>${item.desc || '—'}${item.note ? `<br><span style="color:#7A7068;font-size:10px">${item.note}</span>` : ''}</td>
             <td class="right">${item.qty}</td>
-            <td class="right">${cur}${parseFloat(item.rate).toFixed(2)}</td>
-            <td class="right">${cur}${(item.qty * item.rate).toFixed(2)}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-
-    <div class="a4-totals">
-      <div class="a4-totals-inner">
-        <div class="a4-total-row">
-          <span class="a4-total-label">Subtotal</span>
-          <span class="a4-total-value">${cur}${sub.toFixed(2)}</span>
-        </div>
-        <div class="a4-total-row">
-          <span class="a4-total-label">GST (${s.gst}%)</span>
-          <span class="a4-total-value">${cur}${gst.toFixed(2)}</span>
-        </div>
-        <div class="a4-total-row grand">
-          <span class="a4-total-label">Total</span>
-          <span class="a4-total-value">${cur}${total.toFixed(2)}</span>
-        </div>
-      </div>
-    </div>
-
-    ${doc.notes ? `<div style="margin-bottom:24px"><div class="a4-meta-label" style="margin-bottom:4px">Notes</div><div style="font-size:11px;color:#3D3630;line-height:1.6">${doc.notes}</div></div>` : ''}
-
-    <div class="a4-footer">
-      <div class="a4-footer-note">
-        ${s.bank || s.acctNum ? `<strong>Payment Details</strong><br>
-        ${s.bank ? s.bank + ' &nbsp;·&nbsp; ' : ''}${s.acctName ? s.acctName + '<br>' : ''}
-        ${s.bsb ? 'BSB: ' + s.bsb + ' &nbsp;&nbsp; ' : ''}${s.acctNum ? 'Acc: ' + s.acctNum : ''}<br>` : ''}
-        ${s.footer || 'Thank you for your business.'}
-      </div>
-      <div class="a4-footer-brand">
-        ${s.bizName}<br>
-        ${s.email || ''}${s.email && s.phone ? ' · ' : ''}${s.phone || ''}
-      </div>
-    </div>
-  `;
-
-  document.getElementById('a4-content').innerHTML = a4;
-  document.getElementById('preview-modal').classList.add('open');
-}
-
-function closePreview() {
-  document.getElementById('preview-modal').classList.remove('open');
-}
-
-function formatDate(d) {
-  if (!d) return '—';
-  const parts = d.split('-');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${parseInt(parts[2])} ${months[parseInt(parts[1])-1]} ${parts[0]}`;
-}
-
-function newDocument(type) {
-  showPanel(type === 'quote' ? 'quotes' : 'invoices');
-  const panelId = type === 'quote' ? 'quotes' : 'invoices';
-  const tabEl = document.querySelectorAll('#panel-' + panelId + ' .tab')[1];
-  switchTab(panelId, 'create', tabEl);
-  buildDocForm(type);
-}
-
-// Close modal on backdrop click
-document.getElementById('preview-modal').addEventListener('click', function(e) {
-  if (e.target === this) closePreview();
-});
-
-// ─── INIT ───
-load();
-updateDashboard();
-</script>
-</body>
-</html>
